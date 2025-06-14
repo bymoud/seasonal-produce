@@ -413,18 +413,30 @@
             });
         }
 
-        // PWA Install Prompt with fallback
+        // PWA Install Prompt with fallback (mobile only)
         let deferredPrompt;
         let installButton;
+        
+        // Mobile detection function
+        function isMobileDevice() {
+            return (
+                /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                ('ontouchstart' in window) ||
+                (navigator.maxTouchPoints > 0) ||
+                window.innerWidth <= 768
+            );
+        }
         
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            showInstallPrompt();
+            if (isMobileDevice()) {
+                showInstallPrompt();
+            }
         });
 
         function showInstallPrompt() {
-            if (installButton) return; // Don't create multiple buttons
+            if (installButton || !isMobileDevice()) return; // Don't create multiple buttons or show on desktop
             
             installButton = document.createElement('button');
             installButton.textContent = '📱 Installer l\'application';
@@ -477,10 +489,10 @@
             document.body.appendChild(modal);
         }
         
-        // Show install button after page load for users who don't get the prompt
+        // Show install button after page load for users who don't get the prompt (mobile only)
         window.addEventListener('load', () => {
             setTimeout(() => {
-                if (!deferredPrompt && !installButton && !window.matchMedia('(display-mode: standalone)').matches) {
+                if (!deferredPrompt && !installButton && !window.matchMedia('(display-mode: standalone)').matches && isMobileDevice()) {
                     showInstallPrompt();
                 }
             }, 3000); // Show after 3 seconds if no prompt appeared
